@@ -1,6 +1,9 @@
 //import liraries
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder } from "react-native";
+import { View, Text, StyleSheet, Animated, PanResponder, Dimensions } from "react-native";
+
+//get the width of the current phone
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // create a component
 class Deck extends Component {
@@ -19,19 +22,47 @@ class Deck extends Component {
     });
     this.state = { panResponder, position };
   }
+  getCardStyle(){
+      // to get direct access to the position
+      const {position} = this.state;
+      //interpolation 
+      const rotate = position.x.interpolate({
+          //distance moved on x axis
+        inputRange: [-SCREEN_WIDTH * 1.5,0,SCREEN_WIDTH * 1.5],
+        // the rotation depending on the distance
+        outputRange: ['-120deg','0deg','120deg']
+      });
+    return {
+        ...position.getLayout(),
+        //ES6  = rotate: rotate
+        transform: [{ rotate }]
+    };
+
+  }
+
   renderCards() {
-    return this.props.data.map(item => {
+    return this.props.data.map((item, index) => {
+        // add movement only to the top card
+        if(index === 0){
+            return(
+                // animating the view
+                <Animated.View
+                key={item.id}
+                 style={this.getCardStyle()}
+                {...this.state.panResponder.panHandlers}
+                >
+                    {this.props.renderCard(item)}
+                </Animated.View>
+            );
+        }
       return this.props.renderCard(item);
     });
   }
   render() {
     return (
-      <Animated.View
-        style={this.state.position.getLayout()}
-        {...this.state.panResponder.panHandlers}
-      >
+      <View>
         {this.renderCards()}
-      </Animated.View>
+      </View>
     );
   }
 }
