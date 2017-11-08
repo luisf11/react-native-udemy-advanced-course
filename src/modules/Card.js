@@ -5,9 +5,15 @@ import { View, Text, StyleSheet, Animated, PanResponder, Dimensions } from "reac
 //get the width of the current phone
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
+const SWIPE_OUT_DURATION = 250;
 
 // create a component
 class Deck extends Component {
+  //to define default props
+  static defaultProps = {
+    onSwipeRight: () => {},
+    onSwipeLeft: () => {}
+  }
   constructor(props) {
     super(props);
     const position = new Animated.ValueXY();
@@ -22,16 +28,33 @@ class Deck extends Component {
       //when the user stop the gesture
       onPanResponderRelease: (event, gesture) => {
         if(gesture.dx > SWIPE_THRESHOLD){
-            console.log('swipe right!')
+          this.forceSwipe('right');
         }else if(gesture.dx < -SWIPE_THRESHOLD){
-            console.log('swipe left!')
+          this.forceSwipe('left');
         }else{
 
             this.resetPosition();
         }
       }
     });
-    this.state = { panResponder, position };
+    this.state = { panResponder, position , index:0 };
+  }
+  forceSwipe(direction){
+    const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH ;
+    Animated.timing(this.state.position, {
+      //ECS 6
+      toValue: { x , y: 0},
+      duration: SWIPE_OUT_DURATION
+      //this execute only after the animation
+  }).start(()=>this.onSwipeComplete(direction));
+  }
+  onSwipeComplete(direction){
+    const {onSwipeRight , onSwipeLeft, data} = this.props;
+    const item = data[this.state.index];
+
+    direction === 'right' ? onSwipeRight(item) : onSwipeLeft(item);
+    this.state.position.setValue({x: 0, y: 0});
+    this.setState({index: this.state.index + 1});
   }
 //set the position of the card to initial state
   resetPosition(){
@@ -58,9 +81,14 @@ class Deck extends Component {
   }
 
   renderCards() {
-    return this.props.data.map((item, index) => {
+    if(this.state.index >= this.props.data.length){
+      return this.props.renderNoMoreCards();
+    }
+
+    return this.props.data.map((item, i) => {
+      if(i < this.state.index) {return null;}
         // add movement only to the top card
-        if(index === 0){
+        if(i === this.state.index){
             return(
                 // animating the view
                 <Animated.View
