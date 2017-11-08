@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Animated, PanResponder, Dimensions } from "reac
 
 //get the width of the current phone
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 
 // create a component
 class Deck extends Component {
@@ -18,9 +19,25 @@ class Deck extends Component {
         //setting values of x and y
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
-      onPanResponderRelease: () => {}
+      //when the user stop the gesture
+      onPanResponderRelease: (event, gesture) => {
+        if(gesture.dx > SWIPE_THRESHOLD){
+            console.log('swipe right!')
+        }else if(gesture.dx < -SWIPE_THRESHOLD){
+            console.log('swipe left!')
+        }else{
+
+            this.resetPosition();
+        }
+      }
     });
     this.state = { panResponder, position };
+  }
+//set the position of the card to initial state
+  resetPosition(){
+      Animated.spring(this.state.position, {
+          toValue: {x:0 , y: 0}
+      }).start();
   }
   getCardStyle(){
       // to get direct access to the position
