@@ -93,15 +93,19 @@ class Deck extends Component {
                 // animating the view
                 <Animated.View
                 key={item.id}
-                 style={this.getCardStyle()}
+                 style={[this.getCardStyle(),styles.cardStyle,{'zIndex': 100}]}
                 {...this.state.panResponder.panHandlers}
                 >
                     {this.props.renderCard(item)}
                 </Animated.View>
             );
         }
-      return this.props.renderCard(item);
-    });
+      return (
+        <View key={item.id} style={[styles.cardStyle,{ top: 10 * (i - this.state.index)}, { zIndex: 100 - i}]}>
+          {this.props.renderCard(item)}
+        </View> 
+      )
+    }).reverse();
   }
   render() {
     return (
@@ -114,11 +118,9 @@ class Deck extends Component {
 
 // define your styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#2c3e50"
+  cardStyle: {
+   position: 'absolute',
+   width: SCREEN_WIDTH
   }
 });
 
