@@ -1,6 +1,14 @@
 //import liraries
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder, Dimensions } from "react-native";
+import { View,
+   Text,
+  StyleSheet, 
+  Animated, 
+  PanResponder, 
+  Dimensions,
+  LayoutAnimation,
+  UIManager 
+} from "react-native";
 
 //get the width of the current phone
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -39,6 +47,15 @@ class Deck extends Component {
     });
     this.state = { panResponder, position , index:0 };
   }
+  componentWillUpdate(){
+    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    LayoutAnimation.spring();
+  }
+  componentWillReceiveProps(nextProps){
+    if(nextProps.data !== this.props.data){
+      this.state.setState({index: 0});
+    }
+  }
   forceSwipe(direction){
     const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH ;
     Animated.timing(this.state.position, {
@@ -59,7 +76,7 @@ class Deck extends Component {
 //set the position of the card to initial state
   resetPosition(){
       Animated.spring(this.state.position, {
-          toValue: {x:0 , y: 0}
+          toValue: {x: 0 , y: 0}
       }).start();
   }
   getCardStyle(){
@@ -101,9 +118,9 @@ class Deck extends Component {
             );
         }
       return (
-        <View key={item.id} style={[styles.cardStyle,{ top: 10 * (i - this.state.index)}, { zIndex: 100 - i}]}>
+        <Animated.View key={item.id} style={[styles.cardStyle,{ top: 10 * (i - this.state.index)}, { zIndex: 100 - i}]}>
           {this.props.renderCard(item)}
-        </View> 
+        </Animated.View> 
       )
     }).reverse();
   }
